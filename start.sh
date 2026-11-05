@@ -173,10 +173,17 @@ $compose_cmd -f "$BASE_DIR/windows10.yml" up -d
 ok "Container started (detached)"
 echo
 echo "=== How to open Windows ==="
+if [ -n "$CODESPACE_NAME" ]; then
+  echo "🌐 Direct Browser Link: https://${CODESPACE_NAME}-8006.app.github.dev"
+  echo "   (Make sure port 8006 is set to Public in the Ports tab!)"
+else
+  echo "🌐 Browser Link: http://localhost:8006 (or check forwarded address in Ports tab)"
+fi
+echo
 echo " 1) In Codespaces, open the PORTS tab (bottom panel beside Terminal)"
 echo " 2) Find port 8006 → right-click → Port Visibility → Public"
 echo " 3) Click the 🌐 globe icon to open Windows in your browser"
-echo " 4) RDP also available on localhost:3389 (user: \$WINDOWS_USERNAME / pass: from .env)"
+echo " 4) RDP also available on localhost:3389 (user: $WINDOWS_USERNAME / pass: from .env)"
 echo
 echo "=== Useful commands ==="
 echo "  docker logs -f windows          # follow boot logs (Ctrl+C to exit, container keeps running)"
