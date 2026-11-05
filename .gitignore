@@ -1,0 +1,20 @@
+.env
+storage/
+shared/
+workspaces/win/storage/
+workspaces/win/shared/
+*.qcow2
+*.img
+/tmp/docker-data/
+windows-data/
+.env.local
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Keep build tools clean (do not ignore real assets)
+# Assets/ are committed on purpose for the site
