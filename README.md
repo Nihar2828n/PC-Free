@@ -63,6 +63,27 @@ Compare PC-Free with other Windows cloud solutions:
 
 ---
 
+## ⚡ Super Quick Start (Codespaces One-Liner) — New!
+
+> Paste this in your Codespace terminal and go make coffee. Windows will be in your browser.
+
+```bash
+bash start.sh
+# or the exact one-liner from the guide:
+# bash scripts/codespace-one-liner.sh
+```
+
+What `start.sh` does for you:
+- ✅ Checks `nproc` / `free -h` / `df -h` and picks the biggest partition
+- ✅ Verifies `/dev/kvm` exists (needs 4-core Codespace for nested KVM) — stops with a clear fix if missing
+- ✅ Creates `storage/` (Windows disk) + `shared/` (host↔Windows) + `.env` + `windows10.yml` if they don't exist
+- ✅ Writes a safe `.gitignore` (`.env` + `storage/` never committed)
+- ✅ Runs `docker compose -f windows10.yml up -d` and tails `docker logs -f windows`
+
+Then open **PORTS tab → 8006 → Visibility: Public → 🌐 globe icon** — your Windows desktop appears. RDP also on `3389`.
+
+Config lives in [`windows10.yml`](./windows10.yml) and [`.env.example`](./.env.example) — edit before running to change username/password, RAM (`8G`), CPU (`4`), DISK (`64G`).
+
 ## Quick Start: Run Windows 10 in 5 Minutes
 
 ### Method 1: One-Click GitHub Codespaces (Recommended)
@@ -72,7 +93,7 @@ The fastest way to get Windows 10 running in your browser:
 1. **Fork this repository** - Click "Fork" button at top right
 2. **Open Codespace** - Click "Code" → "Codespaces" → "Create codespace on main"
 3. **Wait for setup** - Environment loads automatically (~2 minutes)
-4. **Follow the Guía Rápida below**
+4. **Run `bash start.sh` in the terminal** — or follow the Guía Rápida below for manual steps
 
 ### Method 2: Manual Docker Setup
 
@@ -128,10 +149,10 @@ Asegúrate de que `Docker Root Dir` sea `/tmp/docker-data`.
 
 ## 🧱 Archivo `windows10.yml`
 
+> The file below is committed as [`windows10.yml`](./windows10.yml) — **no need to copy-paste**, just run `bash start.sh`.
+> The old `/tmp/docker-data:/mnt/disco1` mapping is replaced by the simpler `./storage:/storage` + `./shared:/shared` used by `dockurr/windows`.
+
 ```yaml
-# Antes de ejecutar docker-compose up, ejecuta:
-# bash check_github_follow.sh || exit 1
-# Si no sigues a https://github.com/jephersonRD, el entorno no se iniciará.
 services:
   windows:
     image: dockurr/windows
@@ -140,22 +161,30 @@ services:
       VERSION: "10"
       USERNAME: ${WINDOWS_USERNAME}
       PASSWORD: ${WINDOWS_PASSWORD}
-      RAM_SIZE: "10G"
+      RAM_SIZE: "8G"
       CPU_CORES: "4"
+      DISK_SIZE: "64G"
     cap_add:
       - NET_ADMIN
     ports:
       - "8006:8006"
       - "3389:3389/tcp"
     volumes:
+      - ./storage:/storage
+      - ./shared:/shared
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    stop_grace_period: 2m
+    restart: unless-stopped
+```
+
+Legacy (advanced) alternative with named volumes and `/tmp/docker-data` mount — only needed if you hit storage limits:
+
+```yaml
+    volumes:
       - /tmp/docker-data:/mnt/disco1
       - windows-data:/mnt/windows-data
-    devices:
-      - "/dev/kvm:/dev/kvm"
-      - "/dev/net/tun:/dev/net/tun"
-    stop_grace_period: 2m
-    restart: always
-
 volumes:
   windows-data:
 ```
@@ -180,10 +209,19 @@ echo ".env" >> .gitignore
 
 ## ▶️ Inicia el contenedor
 
-### Iniciar por primera vez
+### Iniciar por primera vez (now just one command!)
 
 ```bash
-docker-compose -f windows10.yml up
+bash start.sh
+# does: checks KVM, creates .env + windows10.yml if missing, then:
+# docker compose -f windows10.yml up -d && docker logs -f windows
+```
+
+Or manually:
+
+```bash
+docker compose -f windows10.yml up -d
+docker logs -f windows   # Ctrl+C to leave, container keeps running
 ```
 
 ### 🔌 Apagar la PC
@@ -217,10 +255,11 @@ docker stop windows
 
 ### Start Windows Environment
 
-Start the Windows container:
+Start the Windows container (new — one command handles everything):
 
 ```bash
-docker-compose -f windows10.yml up -d
+bash start.sh
+# same as: docker compose -f windows10.yml up -d && docker logs -f windows
 ```
 
 ### Stop Windows Environment

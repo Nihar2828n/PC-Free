@@ -1,0 +1,34 @@
+{
+  "name": "PC-Free Windows 10",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+  "forwardPorts": [8006, 3389],
+  "portsAttributes": {
+    "8006": {
+      "label": "Windows Desktop (VNC/web)",
+      "onAutoForward": "notify",
+      "requireLocalPort": false
+    },
+    "3389": {
+      "label": "Windows RDP",
+      "onAutoForward": "silent"
+    }
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode.vscode-github-actions-badge"]
+    }
+  },
+  "postStartCommand": "echo '✅ PC-Free ready. Run:  bash start.sh  (then open PORTS → 8006 → Public → globe icon)'",
+  "remoteUser": "vscode"
+}
